@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "corepack pnpm run install:browser && node --env-file=../../.env --watch --enable-source-maps --import tsx ./src/index.ts",
+    "dev": "corepack pnpm run install:browser && node --env-file-if-exists=../../.env --watch --enable-source-maps --import tsx ./src/index.ts",
     "build": "node ./build.mjs",
     "install:browser": "npx puppeteer browsers install chrome",
     "postbuild": "corepack pnpm run install:browser",
-    "start": "node --env-file=../../.env --enable-source-maps ./dist/index.mjs",
+    "start": "node --env-file-if-exists=../../.env --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

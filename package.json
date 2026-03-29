@@ -9,6 +9,7 @@
     "dev:api": "corepack pnpm --filter @workspace/api-server run dev",
     "dev:web": "corepack pnpm --filter @workspace/website-analyser run dev",
     "start": "corepack pnpm --filter @workspace/api-server run start",
+    "start:railway": "corepack pnpm db:push && corepack pnpm start",
     "db:push": "corepack pnpm --filter @workspace/db run push",
     "install:browsers": "corepack pnpm --filter @workspace/api-server run install:browser",
     "typecheck:libs": "tsc --build",

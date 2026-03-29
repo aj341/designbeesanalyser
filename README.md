@@ -70,6 +70,46 @@ After the frontend is built, the API server will serve the static app and the AP
 
 SQLite is a good fit if you host the app somewhere that keeps a persistent disk or volume. Avoid static-only or fully ephemeral hosts.
 
+## Railway deployment
+
+This repo now includes a `Dockerfile` and `railway.json` so Railway can deploy it as a single Node service.
+
+### Railway setup
+
+1. Create a new Railway project from this GitHub repo.
+2. Add a volume and mount it to:
+
+```text
+/app/data
+```
+
+3. Set these environment variables in Railway:
+
+```text
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+PORT=3000
+DATABASE_URL=./data/homepage-analyzer.db
+```
+
+4. Deploy the service.
+
+### Notes
+
+- Railway will use the included `Dockerfile`.
+- On startup, the app runs `db:push` automatically before starting the server, so a fresh volume is okay.
+- The included health check path is:
+
+```text
+/api/healthz
+```
+
+- Once deployed, your app URL will serve both the frontend and backend from the same domain.
+- Your API base URL will be:
+
+```text
+https://your-railway-domain/api
+```
+
 ## Useful commands
 
 ```bash

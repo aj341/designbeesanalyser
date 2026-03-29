@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+node_modules
+dist
+data
+screenshots
+artifacts/api-server/screenshots
+pnpm-debug.log
+npm-debug.log
+yarn-error.log
