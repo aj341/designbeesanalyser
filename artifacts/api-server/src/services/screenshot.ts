@@ -71,6 +71,20 @@ export interface ScreenshotResult {
   detectedCarousels: DetectedCarousel[];
 }
 
+interface ExtractedPageData {
+  pageTitle: string;
+  metaDescription: string;
+  links: { text: string; href: string }[];
+  headings: { level: string; text: string }[];
+  ctaButtons: { text: string; type: string }[];
+  hasHeroSection: boolean;
+  hasSocialProof: boolean;
+  hasTrustSignals: boolean;
+  bodyText: string;
+  htmlContent: string;
+  detectedCarousels: DetectedCarousel[];
+}
+
 const EXTRACT_PAGE_DATA_SCRIPT = `(() => {
   const pageTitle = document.title || "";
   const metaDesc =
@@ -249,12 +263,16 @@ export async function captureScreenshot(url: string, analysisId: string): Promis
     // Wait for JS-rendered content and lazy-loaded images
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const pageData = await page.evaluate(EXTRACT_PAGE_DATA_SCRIPT);
+    const pageData = await page.evaluate(
+      EXTRACT_PAGE_DATA_SCRIPT,
+    ) as ExtractedPageData;
 
     // Snapshot 1: above-the-fold view (JPEG for smaller Claude payload)
     const snap1 = await page.screenshot({ encoding: "base64", type: "jpeg", quality: 80, clip: { x: 0, y: 0, width: 1280, height: 800 } });
 
-    const pageHeightForScroll = await page.evaluate("document.body.scrollHeight");
+    const pageHeightForScroll = Number(
+      await page.evaluate("document.body.scrollHeight"),
+    );
     const scrollableHeight = Math.min(pageHeightForScroll, 8000);
 
     // Take scrolled viewport snapshots to cover content below the fold
@@ -279,7 +297,7 @@ export async function captureScreenshot(url: string, analysisId: string): Promis
     // Do NOT change the viewport height — sites using height:100vh or
     // min-height:100vh would balloon those sections to fill the new
     // viewport, making hero images huge and hiding page content.
-    const fullHeight = await page.evaluate("document.body.scrollHeight");
+    const fullHeight = Number(await page.evaluate("document.body.scrollHeight"));
 
     const elementPositions = await page.evaluate(`(() => {
       const pageHeight = ${JSON.stringify(fullHeight)};
@@ -313,7 +331,7 @@ export async function captureScreenshot(url: string, analysisId: string): Promis
       capture("footer", Array.from(document.querySelectorAll("footer")));
 
       return results.slice(0, 40);
-    })()`);
+    })()`) as ElementPosition[];
 
     const fileName = `${analysisId}_${crypto.randomBytes(4).toString("hex")}.png`;
     const filePath = path.join(SCREENSHOTS_DIR, fileName);
