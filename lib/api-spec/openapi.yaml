@@ -1,0 +1,379 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: analyses
+    description: Website analysis operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /analyses:
+    post:
+      operationId: submitAnalysis
+      tags: [analyses]
+      summary: Submit a URL for analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitAnalysisRequest"
+      responses:
+        "202":
+          description: Analysis job accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisJob"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      operationId: listAnalyses
+      tags: [analyses]
+      summary: List all past analyses
+      responses:
+        "200":
+          description: List of analyses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AnalysisSummary"
+
+  /analyses/{id}:
+    get:
+      operationId: getAnalysis
+      tags: [analyses]
+      summary: Get a completed analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analyses/{id}/status:
+    get:
+      operationId: getAnalysisStatus
+      tags: [analyses]
+      summary: Poll analysis job status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisJob"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analyses/{id}/seo:
+    get:
+      operationId: getSeoAnalysis
+      tags: [analyses]
+      summary: Get the SEO analysis for a completed analysis (premium feature)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SEO analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeoAnalysis"
+        "403":
+          description: Premium feature - not available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SubmitAnalysisRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          description: The URL of the website to analyse
+      required:
+        - url
+
+    AnalysisJob:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        error:
+          type: string
+          nullable: true
+      required:
+        - id
+        - url
+        - status
+        - createdAt
+
+    AnalysisSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        screenshotUrl:
+          type: string
+          nullable: true
+        overallScore:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - url
+        - status
+        - createdAt
+
+    Finding:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [strength, weakness]
+        category:
+          type: string
+          description: Dynamic category determined by AI based on page intent
+        title:
+          type: string
+        evidence:
+          type: string
+        suggestion:
+          type: string
+        x:
+          type: number
+          description: X position as a percentage of the screenshot width (0-100)
+        y:
+          type: number
+          description: Y position as a percentage of the screenshot height (0-100)
+        width:
+          type: number
+          description: Width as a percentage of the screenshot width
+        height:
+          type: number
+          description: Height as a percentage of the screenshot height
+      required:
+        - id
+        - type
+        - category
+        - title
+        - evidence
+        - suggestion
+        - x
+        - y
+        - width
+        - height
+
+    ScoreCategory:
+      type: object
+      properties:
+        name:
+          type: string
+        score:
+          type: number
+        description:
+          type: string
+      required:
+        - name
+        - score
+        - description
+
+    Analysis:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        screenshotUrl:
+          type: string
+          nullable: true
+        screenshotWidth:
+          type: number
+          nullable: true
+        screenshotHeight:
+          type: number
+          nullable: true
+        overallScore:
+          type: number
+          nullable: true
+        findings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Finding"
+        scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScoreCategory"
+        summary:
+          type: string
+          nullable: true
+        pageIntent:
+          type: string
+          nullable: true
+          description: The AI-detected purpose of the page (e.g. Lead Generation, SaaS / Software)
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        error:
+          type: string
+          nullable: true
+      required:
+        - id
+        - url
+        - status
+        - createdAt
+        - findings
+        - scores
+
+    SeoFinding:
+      type: object
+      properties:
+        category:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [good, warning, error]
+        details:
+          type: string
+        recommendation:
+          type: string
+      required:
+        - category
+        - title
+        - status
+        - details
+        - recommendation
+
+    SeoAnalysis:
+      type: object
+      properties:
+        analysisId:
+          type: string
+        overallScore:
+          type: number
+        findings:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeoFinding"
+        summary:
+          type: string
+      required:
+        - analysisId
+        - overallScore
+        - findings
+        - summary

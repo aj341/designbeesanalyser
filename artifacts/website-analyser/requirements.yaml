@@ -1,0 +1,15 @@
+packages:
+  "framer-motion": "For stunning layout transitions, loading states, and highlight box reveals"
+  "date-fns": "For formatting human-readable timestamps in the history list"
+  "clsx": "For conditional class names"
+  "tailwind-merge": "For merging tailwind classes safely"
+  "lucide-react": "For beautiful, consistent iconography across the dashboard"
+
+images:
+  - path: "artifacts/website-analyser/public/images/abstract-bg.png"
+    description: "Dark, moody, technical abstract background with subtle glowing cyan and emerald data lines and geometric grid patterns, highly premium and sleek"
+    aspect_ratio: "16:9"
+
+notes:
+  - "Assuming Orval generated hooks in @workspace/api-client-react wrap request bodies in a `data` property (e.g., mutate({ data: { url } }))"
+  - "Polling uses TanStack Query v5 refetchInterval function signature: (query) => number | false"
